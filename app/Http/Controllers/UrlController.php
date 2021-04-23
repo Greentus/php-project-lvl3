@@ -45,16 +45,16 @@ class UrlController extends Controller
         $arr = parse_url($url);
         if ($arr === false) {
             flash('Не правильный адрес: ' . $url)->error();
-            return back();
+            return back()->withErrors(['address' => 'Не правильный адрес: ' . $url]);
         }
         $scheme = $arr['scheme'];
         if (!array_key_exists($scheme, self::HTTP_SCHEMES)) {
             flash('Не поддерживаемый протокол: ' . $url)->error();
-            return back();
+            return back()->withErrors(['scheme' => 'Не поддерживаемый протокол: ' . $url]);
         }
         if (!array_key_exists('host', $arr)) {
             flash('Не правильный адрес: ' . $url)->error();
-            return back();
+            return back()->withErrors(['host' => 'Не правильный адрес: ' . $url]);
         }
         $host = $arr['host'];
         if (array_key_exists('port', $arr)) {
@@ -72,7 +72,7 @@ class UrlController extends Controller
             return redirect(route('urls.index'));
         } else {
             flash('Не удалось добавить сайт: ' . $url)->error();
-            return back();
+            return back()->withErrors(['address' => 'Не удалось добавить сайт: ' . $url]);
         }
     }
 

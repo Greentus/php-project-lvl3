@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Анализатор страниц</title>
-    <script src="{{ asset('js/app.js') }}" defer></script>
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <script src="/js/app.js" defer></script>
+    <link href="/css/app.css" rel="stylesheet">
 </head>
-<body>
+<body class="min-vh-100 d-flex flex-column">
 @section('header')
-    <header>
+    <header class="flex-shrink-0">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/">Анализатор страниц</a>
+                <a class="navbar-brand" href="{{ route('index') }}">Анализатор страниц</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                         aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -20,10 +20,10 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="/">Главная</a>
+                            <a class="nav-link active" aria-current="page" href="{{ route('index') }}">Главная</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/urls">Страницы</a>
+                            <a class="nav-link" href="{{ route('urls.index') }}">Страницы</a>
                         </li>
                     </ul>
                 </div>
@@ -32,7 +32,7 @@
     </header>
 @show
 @section('main')
-    <main class="flex-shrink-0">
+    <main class="flex-grow-1">
         <div class="container mt-1">
             @include('flash::message')
         </div>
@@ -40,7 +40,7 @@
     </main>
 @show
 @section('footer')
-    <footer class="fixed-bottom border-top">
+    <footer class="border-top flex-shrink-0">
         <div class="text-center m-2">
             <a href="https://github.com/Greentus/php-project-lvl3">Hexlet Project 3</a>
         </div>
