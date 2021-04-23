@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -66,11 +67,25 @@ class UrlControllerTest extends TestCase
 
     public function testCheck()
     {
+        Http::fake();
         foreach ($this->data as $url) {
             $response = $this->post(route('urls.check', ['url' => $url['id']]), ['_token' => csrf_token()]);
             $response->assertSessionHasNoErrors();
             $response->assertRedirect();
             $this->assertDatabaseHas('url_checks', ['url_id' => $url['id']]);
+        }
+    }
+
+    public function testCheck403()
+    {
+        Http::fake(function ($request) {
+            return Http::response('Forbidden', 403);
+        });
+        foreach ($this->data as $url) {
+            $response = $this->post(route('urls.check', ['url' => $url['id']]), ['_token' => csrf_token()]);
+            $response->assertSessionHasNoErrors();
+            $response->assertRedirect();
+            $this->assertDatabaseHas('url_checks', ['url_id' => $url['id'], 'status_code' => 403]);
         }
     }
 }

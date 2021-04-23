@@ -12,7 +12,8 @@
                 <tr>
                     <th scope="col" class="text-center">ID</th>
                     <th scope="col" class="text-center">Сайт</th>
-                    <th scope="col" class="text-center">Дата</th>
+                    <th scope="col" class="text-center">Последняя проверка</th>
+                    <th scope="col" class="text-center">Код ответа</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -20,7 +21,8 @@
                     <tr>
                         <th scope="row" class="text-right">{{ $url->id }}</th>
                         <td><a href="{{ route('urls.show',['url'=>$url->id]) }}">{{ $url->name }}</a></td>
-                        <td class="text-center" >{{ $url->created_at }}</td>
+                        <td class="text-center">{{ is_null($url->check) ? '' : $url->check->created_at }}</td>
+                        <td class="text-center">{{ is_null($url->check) ? '' : $url->check->status_code }}</td>
                     </tr>
                 @endforeach
                 </tbody>

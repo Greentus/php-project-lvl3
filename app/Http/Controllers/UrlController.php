@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class UrlController extends Controller
 {
@@ -22,12 +24,10 @@ class UrlController extends Controller
      */
     public function index()
     {
-        $urls = DB::table('urls')
-            ->select('urls.id', 'urls.name', DB::raw('MAX(url_checks.created_at) as created_at'))
-            ->leftJoin('url_checks', 'urls.id', '=', 'url_checks.url_id')
-            ->groupBy('urls.id')
-            ->orderBy('urls.id')
-            ->paginate(15);
+        $urls = DB::table('urls')->orderBy('id')->paginate(15);
+        foreach ($urls as $url) {
+            $url->check = DB::table('url_checks')->where('url_id', $url->id)->orderByDesc('created_at')->limit(1)->get()->first();
+        }
         return view('urls.index', ['urls' => $urls]);
     }
 
@@ -148,9 +148,15 @@ class UrlController extends Controller
     {
         $urls = DB::table('urls')->where('id', $id)->get();
         if ($urls->count() > 0) {
-            if (DB::table('url_checks')->insert(['url_id' => $id, 'created_at' => now(), 'updated_at' => now()])) {
+            try {
+                $check = Http::get($urls->first()->name);
+            } catch (Throwable $e) {
+                flash('Ошибка при проверке сайта: ' . $e->getMessage())->error();
+                return redirect(route('urls.show', ['url' => $urls->first()->id]));
+            }
+            if (DB::table('url_checks')->insert(['url_id' => $urls->first()->id, 'status_code' => $check->status(), 'created_at' => now(), 'updated_at' => now()])) {
                 flash('Проверка прошла успешно.')->success();
-                return redirect(route('urls.show', ['url' => $id]));
+                return redirect(route('urls.show', ['url' => $urls->first()->id]));
             } else {
                 flash('Не удалось добавить проверку.')->error();
                 return back()->withErrors(['address' => 'Не удалось добавить проверку.']);
