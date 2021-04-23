@@ -2,7 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\DB;
 
 class UrlController extends Controller
@@ -12,18 +18,23 @@ class UrlController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
+     * @return Application|Factory|View|Response
      */
     public function index()
     {
-        $urls = DB::table('urls')->paginate(15);
+        $urls = DB::table('urls')
+            ->select('urls.id', 'urls.name', DB::raw('MAX(url_checks.created_at) as created_at'))
+            ->leftJoin('url_checks', 'urls.id', '=', 'url_checks.url_id')
+            ->groupBy('urls.id')
+            ->orderBy('urls.id')
+            ->paginate(15);
         return view('urls.index', ['urls' => $urls]);
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -33,8 +44,8 @@ class UrlController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
+     * @param Request $request
+     * @return Application|RedirectResponse|Response|Redirector
      */
     public function store(Request $request)
     {
@@ -80,13 +91,14 @@ class UrlController extends Controller
      * Display the specified resource.
      *
      * @param int $id
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
+     * @return Application|Factory|View|Response
      */
     public function show($id)
     {
         $urls = DB::table('urls')->where('id', $id)->get();
         if ($urls->count() > 0) {
-            return view('urls.url', ['url' => $urls[0]]);
+            $checks = DB::table('url_checks')->where('url_id', $urls->first()->id)->orderByDesc('created_at')->get();
+            return view('urls.url', ['url' => $urls->first(), 'checks' => $checks]);
         } else {
             abort(404, 'Не известный ID.');
         }
@@ -96,7 +108,7 @@ class UrlController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -106,9 +118,9 @@ class UrlController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -119,10 +131,32 @@ class UrlController extends Controller
      * Remove the specified resource from storage.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     * @return Application|RedirectResponse|Response|Redirector
+     */
+    public function check($id)
+    {
+        $urls = DB::table('urls')->where('id', $id)->get();
+        if ($urls->count() > 0) {
+            if (DB::table('url_checks')->insert(['url_id' => $id, 'created_at' => now(), 'updated_at' => now()])) {
+                flash('Проверка прошла успешно.')->success();
+                return redirect(route('urls.show', ['url' => $id]));
+            } else {
+                flash('Не удалось добавить проверку.')->error();
+                return back()->withErrors(['address' => 'Не удалось добавить проверку.']);
+            }
+        } else {
+            abort(404, 'Не известный ID.');
+        }
     }
 }

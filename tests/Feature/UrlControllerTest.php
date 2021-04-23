@@ -63,4 +63,14 @@ class UrlControllerTest extends TestCase
             $response->assertSee($url['name']);
         }
     }
+
+    public function testCheck()
+    {
+        foreach ($this->data as $url) {
+            $response = $this->post(route('urls.check', ['url' => $url['id']]), ['_token' => csrf_token()]);
+            $response->assertSessionHasNoErrors();
+            $response->assertRedirect();
+            $this->assertDatabaseHas('url_checks', ['url_id' => $url['id']]);
+        }
+    }
 }

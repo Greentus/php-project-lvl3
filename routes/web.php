@@ -19,3 +19,5 @@ Route::get('/', function () {
 })->name('index');
 
 Route::resource('urls', UrlController::class);
+
+Route::post('urls/{url}/checks', [UrlController::class,'check'])->name('urls.check');

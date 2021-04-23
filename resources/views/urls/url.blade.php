@@ -28,5 +28,40 @@
                 </tbody>
             </table>
         </div>
+        <div class="row mt-3 justify-content-center">
+            <div class="col-12 text-center">
+                <h1>Проверки</h1>
+            </div>
+            <form action="{{ route('urls.check',['url'=>$url->id]) }}" method="post">
+                @csrf
+                <button type="submit" class="btn btn-primary ml-3">Запустить проверку</button>
+            </form>
+        </div>
+        <div class="row mt-3 justify-content-center">
+            <table class="table table-hover table-bordered">
+                <thead class="thead-dark">
+                <tr>
+                    <th class="text-center">ID</th>
+                    <th scope="col" class="text-center">Код ответа</th>
+                    <th scope="col" class="text-center">h1</th>
+                    <th scope="col" class="text-center">keywords</th>
+                    <th scope="col" class="text-center">description</th>
+                    <th scope="col" class="text-center">Дата создания</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach ($checks as $check)
+                    <tr>
+                        <th scope="row" class="text-right">{{ $check->id }}</th>
+                        <td>{{ $check->status_code }}</td>
+                        <td>{{ $check->h1 }}</td>
+                        <td>{{ $check->keywords }}</td>
+                        <td>{{ $check->description }}</td>
+                        <td>{{ $check->created_at }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 @endsection
