@@ -89,32 +89,4 @@ class UrlControllerTest extends TestCase
             $response->assertSee($url['name']);
         }
     }
-
-    /**
-     * Test UrlController->check.
-     *
-     * @return void
-     */
-    public function testCheck()
-    {
-        // Тест выполнения проверки сайта с ошибкой соединения
-        DB::table('urls')->insert(['id' => 20, 'name' => 'http://127.0.0.2:1', 'created_at' => now(), 'updated_at' => now()]);
-        $response = $this->post(route('urls.check', ['url' => 20]), ['_token' => csrf_token()]);
-        $response->assertSessionHasErrors();
-        $response->assertRedirect();
-        $this->assertDatabaseMissing('url_checks', ['url_id' => 20]);
-
-        Http::fakeSequence()->push('<h1>Test</h1>')->push('Forbidden', 403);
-        // Тест выполнения нормальной проверки сайта
-        $response = $this->post(route('urls.check', ['url' => $this->data[0]['id']]), ['_token' => csrf_token()]);
-        $response->assertSessionHasNoErrors();
-        $response->assertRedirect();
-        $this->assertDatabaseHas('url_checks', ['url_id' => $this->data[0]['id'], 'h1' => 'Test']);
-
-        // Тест выполнения проверки сайта с запретом доступа
-        $response = $this->post(route('urls.check', ['url' => $this->data[0]['id']]), ['_token' => csrf_token()]);
-        $response->assertSessionHasNoErrors();
-        $response->assertRedirect();
-        $this->assertDatabaseHas('url_checks', ['url_id' => $this->data[0]['id'], 'status_code' => 403]);
-    }
 }

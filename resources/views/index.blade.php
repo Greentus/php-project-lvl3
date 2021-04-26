@@ -4,9 +4,10 @@
         <div class="row mt-3">
             <div class="col-12 text-center">
                 <h1 class="display-3">Анализатор страниц</h1>
+                <p class="lead">Бесплатно проверяйте сайты на SEO пригодность</p>
             </div>
         </div>
-        <div class="row mt-3 justify-content-center">
+        <div class="row justify-content-center">
             <div class="col col-sm-12 col-lg-10 col-xl-8">
                 <form action="{{ route('urls.store') }}" method="post">
                     @csrf

@@ -32,7 +32,7 @@
             <div class="col-12 text-center">
                 <h1>Проверки</h1>
             </div>
-            <form action="{{ route('urls.check',['url'=>$url->id]) }}" method="post">
+            <form action="{{ route('checks.store',['url'=>$url->id]) }}" method="post">
                 @csrf
                 <button type="submit" class="btn btn-primary ml-3">Запустить проверку</button>
             </form>
