@@ -67,7 +67,9 @@ class UrlControllerTest extends TestCase
 
     public function testCheck()
     {
-        Http::fake();
+        Http::fake(function ($request) {
+            return Http::response('<h1>Test</h1>');
+        });
         foreach ($this->data as $url) {
             $response = $this->post(route('urls.check', ['url' => $url['id']]), ['_token' => csrf_token()]);
             $response->assertSessionHasNoErrors();
@@ -87,5 +89,14 @@ class UrlControllerTest extends TestCase
             $response->assertRedirect();
             $this->assertDatabaseHas('url_checks', ['url_id' => $url['id'], 'status_code' => 403]);
         }
+    }
+
+    public function testCheckError()
+    {
+        DB::table('urls')->insert(['id' => 20, 'name' => 'http://127.0.0.2:1', 'created_at' => now(), 'updated_at' => now()]);
+        $response = $this->post(route('urls.check', ['url' => 20]), ['_token' => csrf_token()]);
+        $response->assertSessionHasErrors();
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('url_checks', ['url_id' => 20]);
     }
 }

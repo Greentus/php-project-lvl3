@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DiDom\Document;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -78,9 +79,15 @@ class UrlController extends Controller
         } else {
             $url = $scheme . '://' . $host;
         }
-        if (DB::table('urls')->insertOrIgnore(['name' => $url, 'created_at' => now(), 'updated_at' => now()])) {
+        $db = DB::table('urls')->where('name', '=', $url)->get();
+        if ($db->count() > 0) {
+            flash('Сайт уже существует.')->error();
+            return back()->withErrors(['address' => 'Сайт уже существует.']);
+        }
+        $id = DB::table('urls')->insertGetId(['name' => $url, 'created_at' => now(), 'updated_at' => now()]);
+        if ($id) {
             flash('Сайт ' . $url . ' добавлен.')->success();
-            return redirect(route('urls.index'));
+            return redirect(route('urls.show', $id));
         } else {
             flash('Не удалось добавить сайт: ' . $url)->error();
             return back()->withErrors(['address' => 'Не удалось добавить сайт: ' . $url]);
@@ -152,9 +159,22 @@ class UrlController extends Controller
                 $check = Http::get($urls->first()->name);
             } catch (Throwable $e) {
                 flash('Ошибка при проверке сайта: ' . $e->getMessage())->error();
-                return redirect(route('urls.show', ['url' => $urls->first()->id]));
+                return back()->withErrors(['Ошибка при проверке сайта: ' . $e->getMessage()]);
             }
-            if (DB::table('url_checks')->insert(['url_id' => $urls->first()->id, 'status_code' => $check->status(), 'created_at' => now(), 'updated_at' => now()])) {
+            $dom = new Document($check->body());
+            $h1 = optional($dom->first('//h1', \DiDom\Query::TYPE_XPATH))->text();
+            $keys = optional($dom->first('meta[name=keywords]'))->content;
+            $descr = optional($dom->first('meta[name=description]'))->content;
+            $db = DB::table('url_checks')->insert([
+                'url_id' => $urls->first()->id,
+                'status_code' => $check->status(),
+                'h1' => $h1,
+                'keywords' => $keys,
+                'description' => $descr,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            if ($db) {
                 flash('Проверка прошла успешно.')->success();
                 return redirect(route('urls.show', ['url' => $urls->first()->id]));
             } else {
