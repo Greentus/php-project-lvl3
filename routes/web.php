@@ -14,10 +14,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('index');
-})->name('index');
+Route::get(/**
+ * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+ */    '/',
+    function () {
+        return view('index');
+    }
+)->name('index');
 
 Route::resource('urls', UrlController::class);
 
-Route::post('urls/{url}/checks', [UrlController::class,'check'])->name('urls.check');
+Route::post('urls/{url}/checks', [UrlController::class, 'check'])->name('urls.check');
