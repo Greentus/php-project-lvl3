@@ -14,13 +14,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get(/**
- * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
- */    '/',
-    function () {
-        return view('index');
-    }
-)->name('index');
+Route::get('/', function (): Illuminate\View\View {
+    return view('index');
+})->name('index');
 
 Route::resource('urls', UrlController::class);
 
