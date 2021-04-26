@@ -49,7 +49,7 @@ class UrlControllerTest extends TestCase
 
         // Тест повторного добавления сайта
         $response = $this->post(route('urls.store'), ['_token' => csrf_token(), 'url' => ['name' => $url_good]]);
-        $response->assertSessionHasErrors();
+        $response->assertSessionHasNoErrors();
         $response->assertRedirect();
 
         // Тест добавления не поддерживаемого протокола сайта

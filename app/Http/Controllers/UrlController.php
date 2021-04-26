@@ -72,7 +72,7 @@ class UrlController extends Controller
         $db = DB::table('urls')->where('name', '=', $url)->get();
         if ($db->count() > 0) {
             flash('Сайт уже существует.')->error();
-            return back()->withErrors(['address' => 'Сайт уже существует.']);
+            return redirect(route('urls.show', $db->first()->id));
         }
         $id = DB::table('urls')->insertGetId(['name' => $url, 'created_at' => now(), 'updated_at' => now()]);
         if ($id) {
