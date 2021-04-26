@@ -26,8 +26,8 @@ class UrlController extends Controller
     public function index()
     {
         $urls = DB::table('urls')->orderBy('id')->paginate(15);
-        foreach ($urls as $url) {
-            $url->check = DB::table('url_checks')->where('url_id', $url->id)->orderByDesc('created_at')->limit(1)->get()->first();
+        foreach ($urls->items() as $url) {
+            $url->check = DB::table('url_checks')->where('url_id', $url->id)->orderByDesc('created_at')->limit(1)->first();
         }
         return view('urls.index', ['urls' => $urls]);
     }
@@ -49,7 +49,7 @@ class UrlController extends Controller
             flash('Не правильный адрес: ' . $url)->error();
             return back()->withErrors(['address' => 'Не правильный адрес: ' . $url]);
         }
-        $scheme = $arr['scheme'];
+        $scheme = $arr['scheme'] ?? 'http';
         if (!array_key_exists($scheme, self::HTTP_SCHEMES)) {
             flash('Не поддерживаемый протокол: ' . $url)->error();
             return back()->withErrors(['scheme' => 'Не поддерживаемый протокол: ' . $url]);
@@ -75,7 +75,7 @@ class UrlController extends Controller
             return redirect(route('urls.show', $db->first()->id));
         }
         $id = DB::table('urls')->insertGetId(['name' => $url, 'created_at' => now(), 'updated_at' => now()]);
-        if ($id) {
+        if ($id > 0) {
             flash('Сайт ' . $url . ' добавлен.')->success();
             return redirect(route('urls.show', $id));
         } else {

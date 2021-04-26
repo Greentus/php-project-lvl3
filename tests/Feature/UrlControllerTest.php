@@ -13,8 +13,13 @@ use Tests\TestCase;
 
 class UrlControllerTest extends TestCase
 {
-    private $data;
+    private array $data;
 
+    /**
+     * Setting initial values.
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,6 +33,11 @@ class UrlControllerTest extends TestCase
         DB::table('urls')->insert($this->data);
     }
 
+    /**
+     * Test UrlController->index.
+     *
+     * @return void
+     */
     public function testIndex()
     {
         // Тест отображения списка сайтов
@@ -38,6 +48,11 @@ class UrlControllerTest extends TestCase
         }
     }
 
+    /**
+     * Test UrlController->store.
+     *
+     * @return void
+     */
     public function testStore()
     {
         // Тест добавления сайта
@@ -60,6 +75,11 @@ class UrlControllerTest extends TestCase
         $this->assertDatabaseMissing('urls', ['name' => $url_bad]);
     }
 
+    /**
+     * Test UrlController->show.
+     *
+     * @return void
+     */
     public function testShow()
     {
         // Тест отображения конкретного сайта
@@ -70,6 +90,11 @@ class UrlControllerTest extends TestCase
         }
     }
 
+    /**
+     * Test UrlController->check.
+     *
+     * @return void
+     */
     public function testCheck()
     {
         // Тест выполнения проверки сайта с ошибкой соединения
