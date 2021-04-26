@@ -30,6 +30,7 @@ class UrlControllerTest extends TestCase
 
     public function testIndex()
     {
+        // Тест отображения списка сайтов
         $response = $this->get(route('urls.index'));
         $response->assertOk();
         foreach ($this->data as $url) {
@@ -39,16 +40,19 @@ class UrlControllerTest extends TestCase
 
     public function testStore()
     {
+        // Тест добавления сайта
         $url_good = 'http://test.store';
         $response = $this->post(route('urls.store'), ['_token' => csrf_token(), 'url' => ['name' => $url_good]]);
         $response->assertSessionHasNoErrors();
         $response->assertRedirect();
         $this->assertDatabaseHas('urls', ['name' => $url_good]);
 
+        // Тест повторного добавления сайта
         $response = $this->post(route('urls.store'), ['_token' => csrf_token(), 'url' => ['name' => $url_good]]);
         $response->assertSessionHasErrors();
         $response->assertRedirect();
 
+        // Тест добавления не поддерживаемого протокола сайта
         $url_bad = 'ftp://test.store';
         $response = $this->post(route('urls.store'), ['_token' => csrf_token(), 'url' => ['name' => $url_bad]]);
         $response->assertSessionHasErrors();
@@ -58,6 +62,7 @@ class UrlControllerTest extends TestCase
 
     public function testShow()
     {
+        // Тест отображения конкретного сайта
         foreach ($this->data as $url) {
             $response = $this->get(route('urls.show', ['url' => $url['id']]));
             $response->assertOk();
@@ -67,36 +72,24 @@ class UrlControllerTest extends TestCase
 
     public function testCheck()
     {
-        Http::fake(function ($request) {
-            return Http::response('<h1>Test</h1>');
-        });
-        foreach ($this->data as $url) {
-            $response = $this->post(route('urls.check', ['url' => $url['id']]), ['_token' => csrf_token()]);
-            $response->assertSessionHasNoErrors();
-            $response->assertRedirect();
-            $this->assertDatabaseHas('url_checks', ['url_id' => $url['id']]);
-        }
-    }
-
-    public function testCheck403()
-    {
-        Http::fake(function ($request) {
-            return Http::response('Forbidden', 403);
-        });
-        foreach ($this->data as $url) {
-            $response = $this->post(route('urls.check', ['url' => $url['id']]), ['_token' => csrf_token()]);
-            $response->assertSessionHasNoErrors();
-            $response->assertRedirect();
-            $this->assertDatabaseHas('url_checks', ['url_id' => $url['id'], 'status_code' => 403]);
-        }
-    }
-
-    public function testCheckError()
-    {
+        // Тест выполнения проверки сайта с ошибкой соединения
         DB::table('urls')->insert(['id' => 20, 'name' => 'http://127.0.0.2:1', 'created_at' => now(), 'updated_at' => now()]);
         $response = $this->post(route('urls.check', ['url' => 20]), ['_token' => csrf_token()]);
         $response->assertSessionHasErrors();
         $response->assertRedirect();
         $this->assertDatabaseMissing('url_checks', ['url_id' => 20]);
+
+        Http::fakeSequence()->push('<h1>Test</h1>')->push('Forbidden', 403);
+        // Тест выполнения нормальной проверки сайта
+        $response = $this->post(route('urls.check', ['url' => $this->data[0]['id']]), ['_token' => csrf_token()]);
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+        $this->assertDatabaseHas('url_checks', ['url_id' => $this->data[0]['id'], 'h1' => 'Test']);
+
+        // Тест выполнения проверки сайта с запретом доступа
+        $response = $this->post(route('urls.check', ['url' => $this->data[0]['id']]), ['_token' => csrf_token()]);
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+        $this->assertDatabaseHas('url_checks', ['url_id' => $this->data[0]['id'], 'status_code' => 403]);
     }
 }
